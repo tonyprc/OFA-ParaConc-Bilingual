@@ -79,7 +79,7 @@ class MainWindow:
         self.result_list = []
         self.temp_html = ""
         self.font_name = "Arial"
-        self.font_size = 10
+        self.font_size = 11
         self.font_style = "Regular"
                
         self.locate_lg = GetLang()

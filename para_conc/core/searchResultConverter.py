@@ -33,10 +33,10 @@ class SearchResultConverter:
         df.set_index(['num', 'lang'], inplace=True)
         return df    
     
-    def pdf2html(self,df_data, font_id, font_size):
+    def pdf2html(self,df_data):
         tm_html=df_data.to_html(header=None, index=True,index_names=False,escape=False,col_space='5',border='2')
         tm_html = tm_html.replace('border="2"',
-                                  'border="2", style="border-collapse:collapse;font-family:{};font-size:{}pt;"'.format(font_id,font_size,))
+                                  'border="2", style="border-collapse:collapse;"')
         tm_html = tm_html.replace('valign="top"',
                                   'valign="middle" align="center"')
         tm_html = tm_html.replace('<table',

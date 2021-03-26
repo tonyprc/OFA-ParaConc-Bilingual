@@ -43,15 +43,20 @@ class SegAdder(QMainWindow):
         self._file_openBox = QLineEdit()
         self._file_openBox.setFixedWidth(300)
         self._file_openBox.setReadOnly(False)
-        self._file_openButton = QPushButton()
-        self._file_openButton.setText("打开文件夹")
-        self._file_openButton.setFixedWidth(80)
-        self._file_openButton.clicked[bool].connect(self.open_raw_files)
+        self._file_openFile = QPushButton()
+        self._file_openFile.setText("打开文件")
+        self._file_openFile.setFixedWidth(80)
+        self._file_openFile.clicked[bool].connect(self.open_raw_file)
+        self._file_openFiles = QPushButton()
+        self._file_openFiles.setText("打开文件夹")
+        self._file_openFiles.setFixedWidth(80)
+        self._file_openFiles.clicked[bool].connect(self.open_raw_files)
         self._file_addSegButton = QPushButton("开始赋码")
         self._file_addSegButton.setFixedWidth(80)
         self._file_addSegButton.clicked[bool].connect(self.add_seg)
         self._fileloader_layout.addWidget(self._file_openBox)
-        self._fileloader_layout.addWidget(self._file_openButton)
+        self._fileloader_layout.addWidget(self._file_openFile)
+        self._fileloader_layout.addWidget(self._file_openFiles)
         self._fileloader_layout.addWidget(self._file_addSegButton)
 
         self._fileloader_frame.setLayout(self._fileloader_layout)
@@ -74,7 +79,21 @@ class SegAdder(QMainWindow):
         self.setIconSize(QSize(100, 40))
         self.show()
 
+    def open_raw_file(self):
+        self.file_list.clear()
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file, _ = QFileDialog.getOpenFileName(self, "打开文件", "", "Text files(*.txt)", options=options)
+        if file:
+            self._file_openBox.setText(file)
+            filepath = Path(file)
+            self.present_dir = filepath.parent
+            self.file_id = filepath.name
+            self.file_list.append(self.file_id)
+        return self.present_dir
+
     def open_raw_files(self):
+        self.file_list.clear()
         options = QFileDialog.Options()
         options |= QFileDialog.ShowDirsOnly
         presentDir = QFileDialog.getExistingDirectory(self, "打开文件夹", "", options = options)
@@ -104,18 +123,22 @@ class SegAdder(QMainWindow):
                     #获取路径中的文件名部分
                     file_save_name = file_save_id.name                                           
                     bi_list=[]
-                    with open (file_id,'rt', encoding='utf-8-sig') as f:
-                        para_tank=f.readlines()
-                        zh_para=para_tank[0::2]
-                        en_para=para_tank[1::2]
-                        for i,(x,y) in enumerate(zip(zh_para,en_para),start=1):
-                            a='<seg id="'+str(i)+'">'+x.strip().replace('[P]','')+'</seg>'
-                            b='<seg id="'+str(i)+'">'+y.strip().replace('[P]','')+'</seg>'
-                            bi_list.append(a)
-                            bi_list.append(b)
-                        #将光标后移至尾部，并追加提示文字。
+                    try:
+                        with open (file_id,'rt', encoding='utf-8-sig') as f:
+                            para_tank=f.readlines()
+                            zh_para=para_tank[0::2]
+                            en_para=para_tank[1::2]
+                            for i,(x,y) in enumerate(zip(zh_para,en_para),start=1):
+                                a='<seg id="'+str(i)+'">'+x.strip().replace('[P]','')+'</seg>'
+                                b='<seg id="'+str(i)+'">'+y.strip().replace('[P]','')+'</seg>'
+                                bi_list.append(a)
+                                bi_list.append(b)
+                            #将光标后移至尾部，并追加提示文字。
+                            self._filedisplay_box.moveCursor(QTextCursor.End)
+                            self._filedisplay_box.append(f">>> {file_name} 赋码完毕！")
+                    except:
                         self._filedisplay_box.moveCursor(QTextCursor.End)
-                        self._filedisplay_box.append(f">>> {file_name} 赋码完毕！") 
+                        self._filedisplay_box.append(f">>> {file_name} 打开失败，请核实该文件的编码方式！")
                     if bi_list:
                         j += 1
                         cuc_text='\n'.join(bi_list)
@@ -137,13 +160,13 @@ class SegAdder(QMainWindow):
             self._filedisplay_box.setText(f">>> 您尚未选择任何文件夹，请选择待赋码文件所在文件夹！")               
         
         
-#def main():
-#    app = QApplication(sys.argv)
-#    mainWindow = SegAdder()
-#    sys.exit(app.exec_())
+def main():
+    app = QApplication(sys.argv)
+    mainWindow = SegAdder()
+    sys.exit(app.exec_())
 
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    main()
 
 
